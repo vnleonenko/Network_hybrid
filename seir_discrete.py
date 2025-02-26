@@ -9,7 +9,8 @@ def seir_one_day(y, beta, sigma, gamma):
     dEdt = beta * S * I - sigma * E
     dIdt = sigma * E - gamma * I
     dRdt = gamma * I
-    
+
+   
     S = np.max([S + dSdt, 0])
     #S += dSdt
     E += dEdt
@@ -40,13 +41,13 @@ def seir_one_day_stoch(y, beta, sigma, gamma):
     return [S, E, I, R]
 
 
-def seir_model(y, n_of_start, ts, beta, sigma, gamma, 
+def seir_model(y, predicted_days, beta, sigma, gamma, 
                stype='stoch', beta_t=False):
-    res = np.zeros((ts.shape[0], 4))
+    res = np.zeros((predicted_days.shape[0], 4))
     res[0] = y
     beta_val = beta
     
-    for time_stamp in ts[:-1]-n_of_start:
+    for time_stamp in predicted_days[:-1]-predicted_days[0]:
         if beta_t:
             beta_val = beta[time_stamp]
             
@@ -60,12 +61,12 @@ def seir_model(y, n_of_start, ts, beta, sigma, gamma,
     return res
     
 
-def sir_model(y, n_of_start, ts, beta, gamma, stype='stoch', beta_t=False):
-    res = np.zeros((ts.shape[0], 3))
+def sir_model(y, predicted_days, beta, gamma, stype='stoch', beta_t=False):
+    res = np.zeros((predicted_days.shape[0], 3))
     res[0] = y
     beta_val = beta
     
-    for time_stamp in ts[:-1]-n_of_start:
+    for time_stamp in predicted_days[:-1]-predicted_days[0]:
         if beta_t:
             beta_val = beta[time_stamp]
         if stype=='stoch':
