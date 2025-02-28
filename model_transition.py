@@ -138,10 +138,9 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         predicted_beta[predicted_beta < 0] = 0
         
     elif beta_prediction_method == 'polynom_of_day':
-        if I_prediction_method == 'seir':
-            model_path = 'polynom_of_day_for_seir.joblib'
-        else: 
-            model_path = 'polynom_of_day_for_sir.joblib'
+        
+        model_path = 'polynom_of_day_for_{I_prediction_method}.joblib'
+        
         # загрузка модели
         model = load_saved_model(model_path)
         # предсказываем значения Beta на оставшиеся дни
@@ -149,10 +148,9 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         predicted_beta = np.exp(log_beta)
 
     elif beta_prediction_method == 'polynom_of_day_with_shift':
-        if I_prediction_method == 'seir':
-            model_path = 'polynom_of_day_for_seir.joblib'
-        else: 
-            model_path = 'polynom_of_day_for_sir.joblib'
+        
+        model_path = f'polynom_of_day_for_{I_prediction_method}.joblib'
+        
         # загрузка модели
         model = load_saved_model(model_path)
         # предсказываем значения Beta на оставшиеся дни
@@ -172,10 +170,8 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         predicted_I[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['I']
         R[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['R']  
         E[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['E']     
-        if I_prediction_method == 'seir': 
-            model_path = 'polynom_of_day_prev_I_for_seir.joblib'
-        else: 
-            model_path = 'polynom_of_day_prev_I_for_sir.joblib'
+        
+        model_path = f'polynom_of_day_prev_I_for_{I_prediction_method}.joblib'
         
         y = np.array([S[:,0], E[:,0], predicted_I[:,0], R[:,0]])
         y = y.T
@@ -208,19 +204,15 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
             predicted_beta = np.append(predicted_beta, max(beta, 0))
     
     elif beta_prediction_method == 'polynom_SGDReg':
-        if I_prediction_method == 'seir': 
-            model_path = 'polynom_SGDReg_for_seir.joblib'
-        else: 
-            model_path = 'polynom_SGDReg_for_sir.joblib'
+        model_path = f'polynom_SGDReg_for_{I_prediction_method}.joblib'
+        
         model = load_saved_model(model_path)
         x_test = np.arange(predicted_days[0], seed_df.shape[0]).reshape(-1, 1)
         predicted_beta = np.exp(model.predict(x_test))
 
     elif beta_prediction_method == 'polynom_SGDReg_with_rollingshift':
-        if I_prediction_method == 'seir': 
-            model_path = 'polynom_SGDReg_for_seir.joblib'
-        else: 
-            model_path = 'polynom_SGDReg_for_sir.joblib'
+        model_path = f'polynom_SGDReg_for_{I_prediction_method}.joblib'
+        
         model = load_saved_model(model_path)
         x_test = np.arange(predicted_days[0], seed_df.shape[0]).reshape(-1, 1)
         predicted_beta = np.exp(model.predict(x_test))
@@ -230,10 +222,8 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
                                                   ) * (np.abs(change - predicted_beta[0]))
 
     elif beta_prediction_method == 'polynom_SGDReg_with_future_training':
-        if I_prediction_method == 'seir': 
-            model_path = 'polynom_SGDReg_for_seir.joblib'
-        else: 
-            model_path = 'polynom_SGDReg_for_sir.joblib'
+        model_path = f'polynom_SGDReg_for_{I_prediction_method}.joblib'
+        
         def inc_learning(seed_df, start_day,model_path):
             model_il = load_saved_model(model_path)
 
@@ -261,10 +251,8 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         predicted_beta = np.exp(model.predict(x_test))
     
     elif beta_prediction_method == 'lstm':
-        if I_prediction_method == 'seir': 
-            model_path = 'lstm_for_seir.joblib'
-        else: 
-            model_path = 'lstm_for_sir.joblib'
+        model_path = f'lstm_for_{I_prediction_method}.joblib'
+        
         model = load_saved_model(model_path)
 
     elif beta_prediction_method == 'exp_decay':
@@ -338,15 +326,13 @@ def main_f(I_prediction_method, stochastic, count_stoch_line,
     Выход:
         График для сидов.
     '''
+    
     # устаноавление всегда постоянных значений параметров мат. модели
     sigma = 0.1
     gamma = 0.08
+    calc = len(seed_numbers)//2+math.ceil(len(seed_numbers)%2)
+    fig, axes = plt.subplots(calc, 2, figsize=(15, 4*calc))
     
-    fig, axes = plt.subplots(len(seed_numbers)//2+math.ceil(len(seed_numbers)%2), 
-                             2, figsize=(15, 
-                                         4*len(seed_numbers)//2+math.ceil(len(seed_numbers)%2)
-                                        )
-                            )
     axes = axes.flatten()
     
     # объявление папки с DataFrames of seeds, созданными регулярной сетью
@@ -409,26 +395,3 @@ def main_f(I_prediction_method, stochastic, count_stoch_line,
     #pd.DataFrame(peaks).to_csv(f'peak_metrics/{beta_prediction_method}_peaks.csv')
     
     plt.show() 
-'''
-    #построение графиков boxplot для RMSE Beta и I
-    fig_box, ax1 = plt.subplots(figsize=(10, 6))
-    bp1 = ax1.boxplot(all_rmse_I, positions=[1], widths=0.6, patch_artist=False)
-    for median in bp1['medians']:
-     median.set_color('blue')
-    ax1.set_ylabel("Infected RMSE", color='blue')
-    ax1.tick_params(axis='y', labelcolor='blue')
-    
-    ax2 = ax1.twinx()
-    bp2 = ax2.boxplot(all_rmse_Beta, positions=[2], widths=0.6,patch_artist=False)
-    for median in bp2['medians']:
-        median.set_color('green')
-    ax2.set_ylabel("Beta RMSE", color='green')
-    ax2.tick_params(axis='y', labelcolor='green')
-    
-    ax1.set_xlim(0.5, 2.5)
-    ax1.set_xticks([1,2])
-    ax1.set_xticklabels(["Infected RMSE", "Beta RMSE"])
-    ax1.set_title("RMSE distributions across seeds")
-    plt.tight_layout()
-    plt.show() 
-''';
