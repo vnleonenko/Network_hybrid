@@ -1,5 +1,0 @@
-last value,rolling mean last value,expanding mean last value,biexponential decay,median beta,regression (day),"median beta;
-shifted forecast","regression (day);
-shifted forecast","regression (day);
-incremental learning","regression (day, SEIR, previous I)","lstm (day, E, previous I)"
-0.03400087356567383,0.016001462936401367,0.004002094268798828,0.007001638412475586,0.007017612457275391,0.012000560760498047,0.007000446319580078,0.006997823715209961,0.010999202728271484,0.19201135635375977,34.688742876052856
