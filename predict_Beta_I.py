@@ -284,7 +284,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
                 predictor.update_buffer([predicted_days[idx+1], E[0,1], predicted_I[0,idx-1]])
             #predicted_beta = np.append(predicted_beta, predictor.predict_next())
     
-    return beggining_beta, predicted_beta, predicted_I 
+    return np.array(beggining_beta), np.array(predicted_beta), predicted_I 
 
 def predict_I(I_prediction_method, y, 
               predicted_days, 
