@@ -92,7 +92,6 @@ The training data is generated from regular network models of epidemic spread. T
 - Various network topologies to represent different population contact patterns
 - Stochastic processes to introduce realistic variability
 - Multiple epidemic seeds to capture different outbreak scenarios
-- Controlled parameters to simulate different R0 values and intervention strategies
 
 ## Model Training
 
