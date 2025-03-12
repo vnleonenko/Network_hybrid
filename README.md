@@ -31,7 +31,7 @@ Multiple methods for predicting the infection rate parameter (Beta) and correspo
 - Statistical methods: biexponential decay fitting
 - ML methods: regression and LSTM models
 
-### 4. Main Program (`main_f` function)
+### 4. Main Program (`plot_methods.ipynb`)
 
 The main function that orchestrates the epidemic prediction process:
 
