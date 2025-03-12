@@ -10,9 +10,7 @@ def seir_one_day(y, beta, sigma, gamma):
     dIdt = sigma * E - gamma * I
     dRdt = gamma * I
 
-   
     S = np.max([S + dSdt, 0])
-    #S += dSdt
     E += dEdt
     I += dIdt
     R += dRdt
@@ -32,7 +30,6 @@ def seir_one_day_stoch(y, beta, sigma, gamma):
     dIdt = sigma_e - gamma_i
     dRdt = gamma_i
     
-    #S = np.max([S + dSdt, 0])
     S += dSdt
     E += dEdt
     I += dIdt
@@ -104,7 +101,6 @@ def sir_one_day_stoch(y, beta, gamma):
     dIdt = b_s_i - gamma_i
     dRdt = gamma_i
     
-    #S = np.max([S + dSdt, 0])
     S += dSdt
     I += dIdt
     R += dRdt

@@ -92,19 +92,18 @@ class LSTMPredictor:
 def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted_days, 
                  stochastic, count_stoch_line, sigma, gamma):
     '''
-    Предсказзание значений Beta.
+    Predict Beta values.
 
-    Параметры:
+    Parameters:
 
-    - I_prediction_method -- математическая модель для предсказания траекторий Infected
+    - I_prediction_method -- mathematical model for predicting Infected trajectories
         ['seir']
-    - seed_df -- DataFrame of seed, созданный регулярной сетью
-    - beta_prediction_method -- метод предсказания значений Beta
+    - seed_df -- DataFrame of seed, created by a regular network
+    - beta_prediction_method -- method for predicting Beta values
         ['last_value',
         'rolling mean last value',
         'expanding mean last value',
         'biexponential decay', 
-        
         'median beta',
         'regression (day)'
 
@@ -113,11 +112,11 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         'regression (day);\nincremental learning',
         'regression (day, SEIR, previous I)',       
         'lstm (day, E, previous I)']
-    - predicted_days -- дни предсказания
-    - stochastic -- индикатор присутствия предсказанных стохастической мат. моделью траекторий Infected 
-    - count_stoch_line -- количество предсказанных стохастической мат. моделью траекторий Infected 
-    - sigma -- параметр мат. модели типа SEIR
-    - gamma -- параметр мат. модели типа SEIR
+    - predicted_days -- days for prediction
+    - stochastic -- indicator of the presence of predicted trajectories by a stochastic mathematical model
+    - count_stoch_line -- number of trajectories predicted by the stochastic mathematical model
+    - sigma -- parameter of the SEIR-type mathematical model
+    - gamma -- parameter of the SEIR-type mathematical model
     '''
     predicted_I = np.zeros((count_stoch_line+1, predicted_days.shape[0]))
     beggining_beta = []
@@ -197,7 +196,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         S = np.zeros((count_stoch_line+1, 2))
         E = np.zeros((count_stoch_line+1, 2))
         R = np.zeros((count_stoch_line+1, 2))
-        # извлечение значений компартментов в день переключения на мат. модель
+
         S[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['S']
         predicted_I[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['I']
         R[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['R']  
@@ -205,7 +204,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         model_path = 'regression_day_SEIR_prev_I_for_seir.joblib'
         y = np.array([S[:,0], E[:,0], predicted_I[:,0], R[:,0]])
         y = y.T
-        # загрузка модели
+
         model = load_saved_model(model_path)
         prev_I = seed_df.iloc[predicted_days[0]-2:predicted_days[0]]['I'].to_numpy() if predicted_days[0] > 1 else np.array([0.0, 0.0])
         log_beta = model.predict([[predicted_days[0], S[0,0], E[0,0], predicted_I[0,0], R[0,0], prev_I[0]]])
@@ -213,7 +212,8 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         predicted_beta = np.append(predicted_beta,max(beta, 0))
         for idx in range(predicted_days.shape[0]-1):
            
-            # предсказание траектория компартмента Infected
+            
+            # prediction of the Infected compartment trajectory
             S[0,:], E[0,:], predicted_I[0,idx:idx+2], R[0,:] = predict_I(
                                           I_prediction_method, y[0], 
                                           predicted_days[idx:idx+2], 
@@ -248,11 +248,12 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         S = np.zeros((count_stoch_line+1, 2))
         E = np.zeros((count_stoch_line+1, 2))
         R = np.zeros((count_stoch_line+1, 2))
-        # извлечение значений компартментов в день переключения на мат. модель
+
         S[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['S']
         predicted_I[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['I']
         R[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['R']  
-        E[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['E']     
+        E[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['E']  
+
         # Initialize predictor buffer using the last 'window_size' days
         for i in range(max(0, predicted_days[0] - predictor.window_size + 1), predicted_days[0] + 1):
             row = seed_df.iloc[i]
@@ -265,7 +266,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
             predicted_beta = np.append(predicted_beta, predictor.predict_next())     
             if idx == predicted_days.shape[0]-1:
                 break      
-            # предсказание траектория компартмента Infected
+            # prediction of the Infected compartment trajectory
             S[0,:], E[0,:], predicted_I[0,idx:idx+2], R[0,:] = predict_I(I_prediction_method, y[0], 
                                     predicted_days[idx:idx+2], 
                                     predicted_beta[idx], sigma, gamma, 'det', beta_t=False)   
@@ -282,7 +283,6 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
                 predictor.update_buffer([predicted_days[idx+1], E[0,1], prev_I[1]])
             else:
                 predictor.update_buffer([predicted_days[idx+1], E[0,1], predicted_I[0,idx-1]])
-            #predicted_beta = np.append(predicted_beta, predictor.predict_next())
     
     return np.array(beggining_beta), np.array(predicted_beta), predicted_I 
 
@@ -290,18 +290,18 @@ def predict_I(I_prediction_method, y,
               predicted_days, 
               predicted_beta, sigma, gamma, stype, beta_t=True):
     '''
-    Предсказание значений Infected.
+    Predict Infected values.
 
-    Параметры:
+    Parameters:
 
-    - I_prediction_method -- математическая модель для предсказания траектории Infected
+    - I_prediction_method -- mathematical model for predicting the Infected trajectory
         ['seir']
-    - y -- значения компартментов в день переключения на мат. модель
-    - predicted_days -- дни предсказания
-    - predicted_beta -- предсказанные значения Beta
-    - sigma -- параметр мат. модели типа SEIR
-    - gamma -- параметр мат. модели типа SEIR
-    - stype -- тип мат. модели
+    - y -- compartment values on the day of switching to the mathematical model
+    - predicted_days -- days for prediction
+    - predicted_beta -- predicted Beta values
+    - sigma -- parameter of the SEIR-type mathematical model
+    - gamma -- parameter of the SEIR-type mathematical model
+    - stype -- type of mathematical model
         ['stoch', 'det']
     '''
     S,E,I,R = seir_discrete.seir_model(y, predicted_days, 
