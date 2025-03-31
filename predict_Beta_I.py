@@ -211,8 +211,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         beta = np.exp(log_beta)[0]
         predicted_beta = np.append(predicted_beta,max(beta, 0))
         for idx in range(predicted_days.shape[0]-1):
-           
-            
+
             # prediction of the Infected compartment trajectory
             S[0,:], E[0,:], predicted_I[0,idx:idx+2], R[0,:] = predict_I(
                                           I_prediction_method, y[0], 
@@ -229,11 +228,13 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
            
             y = np.array([S[:,1], E[:,1], predicted_I[:,idx+1], R[:,1]])
             y = y.T
-            if idx == 0:
-                log_beta = model.predict([[predicted_days[idx+1], S[0,1], E[0,1], predicted_I[0,idx+1], R[0,1], prev_I[1]]])
+            if (idx == 0) or (idx == 1):
+                log_beta = model.predict([[predicted_days[idx+1], S[0,1], E[0,1], predicted_I[0,idx+1], R[0,1], prev_I[idx]]])
             else:
                 log_beta = model.predict([[predicted_days[idx+1], S[0,1], E[0,1], predicted_I[0,idx+1], R[0,1], predicted_I[0,idx-1]]])
+            
             beta = np.exp(log_beta)[0]
+
             predicted_beta = np.append(predicted_beta, max(beta, 0))
 
     elif beta_prediction_method == 'lstm (day, E, previous I)':
