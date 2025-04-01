@@ -150,12 +150,12 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         predicted_beta[predicted_beta < 0] = 0
         
     elif beta_prediction_method == 'median beta':
-        betas = pd.read_csv('data/train/median_beta.csv')
+        betas = pd.read_csv('train/median_beta.csv')
         beggining_beta = betas.iloc[:predicted_days[0]]['median_beta'].values
         predicted_beta = betas.iloc[predicted_days[0]:]['median_beta'].values
 
     elif beta_prediction_method == 'median beta;\nshifted forecast':
-        betas = pd.read_csv('data/train/median_beta.csv')
+        betas = pd.read_csv('train/median_beta.csv')
         beggining_beta = betas.iloc[:predicted_days[0]]['median_beta'].values
         predicted_beta = betas.iloc[predicted_days[0]:]['median_beta'].values
         change = seed_df['Beta'].rolling(14).mean()[predicted_days[0]]
