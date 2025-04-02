@@ -158,7 +158,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         betas = pd.read_csv('train/median_beta.csv')
         beggining_beta = betas.iloc[:predicted_days[0]]['median_beta'].values
         predicted_beta = betas.iloc[predicted_days[0]:]['median_beta'].values
-        change = seed_df['Beta'].rolling(min(predicted_days[0]-2,14)).mean()[predicted_days[0]]
+        change = seed_df['Beta'].rolling(7).mean()[predicted_days[0]]
         change = np.sign(change - predicted_beta[0]) * (np.abs(change - predicted_beta[0]))
         beggining_beta += change
         predicted_beta += change
@@ -178,7 +178,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         beggining_beta = np.exp(model.predict(x_test))
         x_test = np.arange(predicted_days[0], seed_df.shape[0]).reshape(-1, 1)
         predicted_beta = np.exp(model.predict(x_test))
-        change = seed_df['Beta'].rolling(min(predicted_days[0]-2,14)).mean().iloc[predicted_days[0]]
+        change = seed_df['Beta'].rolling(7).mean().iloc[predicted_days[0]]
         change = np.sign(change - predicted_beta[0]) * (np.abs(change - predicted_beta[0]))
         beggining_beta += change
         predicted_beta += change 
@@ -241,7 +241,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         model_path = 'lstm_day_E_prev_I_for_seir.keras'
         full_scaler = joblib.load('lstm_day_E_prev_I_for_seir.pkl')
         model = load_model(model_path)
-        predictor = LSTMPredictor(model, full_scaler, window_size=14)
+        predictor = LSTMPredictor(model, full_scaler, window_size=7)
         prev_I = seed_df.iloc[predicted_days[0]-2:predicted_days[0]]['I'].to_numpy() if predicted_days[0] > 1 else np.array([0.0, 0.0])
         seed_df['day'] = range(len(seed_df))
         seed_df['prev_I'] = seed_df['I'].shift(-2).fillna(0)
@@ -256,7 +256,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         E[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['E']  
 
         # Initialize predictor buffer using the last 'window_size' days
-        for i in range(max(0, predicted_days[0] - predictor.window_size + 1), predicted_days[0] + 1):
+        for i in range(predicted_days[0] - predictor.window_size + 1, predicted_days[0] + 1):
             row = seed_df.iloc[i]
             raw_features = [row['day'], row['E'], row['prev_I']]
             predictor.update_buffer(raw_features)
