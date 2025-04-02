@@ -79,7 +79,7 @@ def cpoint_roll_var_seq(seed_df, thresh = 0.05):
 
 # wait until 1% of population is infected, 
 # and only then look for a change in variance
-def cpoint_roll_var_npeople(seed_df, thresh = 0.1, n_people=1000):
+def cpoint_roll_var_npeople(seed_df, thresh = 0.1, n_people=1001):
     scaler = MinMaxScaler()
 
     var_vals = seed_df.Beta.rolling(7).var()

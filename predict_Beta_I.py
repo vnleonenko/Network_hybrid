@@ -158,7 +158,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         betas = pd.read_csv('train/median_beta.csv')
         beggining_beta = betas.iloc[:predicted_days[0]]['median_beta'].values
         predicted_beta = betas.iloc[predicted_days[0]:]['median_beta'].values
-        change = seed_df['Beta'].rolling(14).mean()[predicted_days[0]]
+        change = seed_df['Beta'].rolling(min(predicted_days[0]-2,14)).mean()[predicted_days[0]]
         change = np.sign(change - predicted_beta[0]) * (np.abs(change - predicted_beta[0]))
         beggining_beta += change
         predicted_beta += change
@@ -178,7 +178,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         beggining_beta = np.exp(model.predict(x_test))
         x_test = np.arange(predicted_days[0], seed_df.shape[0]).reshape(-1, 1)
         predicted_beta = np.exp(model.predict(x_test))
-        change = seed_df['Beta'].rolling(14).mean().iloc[predicted_days[0]]
+        change = seed_df['Beta'].rolling(min(predicted_days[0]-2,14)).mean().iloc[predicted_days[0]]
         change = np.sign(change - predicted_beta[0]) * (np.abs(change - predicted_beta[0]))
         beggining_beta += change
         predicted_beta += change 
