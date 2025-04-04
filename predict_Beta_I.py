@@ -206,7 +206,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         y = y.T
 
         model = load_saved_model(model_path)
-        prev_I = seed_df.iloc[predicted_days[0]-2:predicted_days[0]]['I'].to_numpy() if predicted_days[0] > 1 else np.array([0.0, 0.0])
+        prev_I = seed_df.iloc[predicted_days[0]-1:predicted_days[0]]['I'].to_numpy() if predicted_days[0] > 1 else np.array([0.0, 0.0])
         log_beta = model.predict([[predicted_days[0], S[0,0], E[0,0], predicted_I[0,0], R[0,0], prev_I[0]]])
         
         beta = np.exp(log_beta)[0]
@@ -229,7 +229,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
            
             y = np.array([S[:,1], E[:,1], predicted_I[:,idx+1], R[:,1]])
             y = y.T
-            if (idx == 0) or (idx == 1):
+            if (idx == 0): #or (idx == 1):
                 log_beta = model.predict([[predicted_days[idx+1], S[0,1], E[0,1], predicted_I[0,idx+1], R[0,1], prev_I[idx]]])
             else:
                 log_beta = model.predict([[predicted_days[idx+1], S[0,1], E[0,1], predicted_I[0,idx+1], R[0,1], predicted_I[0,idx-1]]])
