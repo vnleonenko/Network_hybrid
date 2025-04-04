@@ -208,8 +208,9 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         model = load_saved_model(model_path)
         prev_I = seed_df.iloc[predicted_days[0]-2:predicted_days[0]]['I'].to_numpy() if predicted_days[0] > 1 else np.array([0.0, 0.0])
         log_beta = model.predict([[predicted_days[0], S[0,0], E[0,0], predicted_I[0,0], R[0,0], prev_I[0]]])
+        
         beta = np.exp(log_beta)[0]
-        predicted_beta = np.append(predicted_beta,max(beta, 0))
+        predicted_beta = np.append(predicted_beta,beta)
         for idx in range(predicted_days.shape[0]-1):
 
             # prediction of the Infected compartment trajectory
@@ -234,14 +235,13 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
                 log_beta = model.predict([[predicted_days[idx+1], S[0,1], E[0,1], predicted_I[0,idx+1], R[0,1], predicted_I[0,idx-1]]])
             
             beta = np.exp(log_beta)[0]
-
-            predicted_beta = np.append(predicted_beta, max(beta, 0))
+            predicted_beta = np.append(predicted_beta, beta)
 
     elif beta_prediction_method == 'lstm (day, E, previous I)':
-        model_path = 'lstm_day_E_prev_I_for_seir.keras'
-        full_scaler = joblib.load('lstm_day_E_prev_I_for_seir.pkl')
+        model_path = 'lstm_day_E_prev_I_for_seir_14.keras'
+        full_scaler = joblib.load('lstm_day_E_prev_I_for_seir_14.pkl')
         model = load_model(model_path)
-        predictor = LSTMPredictor(model, full_scaler, window_size=7)
+        predictor = LSTMPredictor(model, full_scaler, window_size=14)
         prev_I = seed_df.iloc[predicted_days[0]-2:predicted_days[0]]['I'].to_numpy() if predicted_days[0] > 1 else np.array([0.0, 0.0])
         seed_df['day'] = range(len(seed_df))
         seed_df['prev_I'] = seed_df['I'].shift(-2).fillna(0)
@@ -284,7 +284,6 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
                 predictor.update_buffer([predicted_days[idx+1], E[0,1], prev_I[1]])
             else:
                 predictor.update_buffer([predicted_days[idx+1], E[0,1], predicted_I[0,idx-1]])
-    
     return np.array(beggining_beta), np.array(predicted_beta), predicted_I 
 
 def predict_I(I_prediction_method, y, 

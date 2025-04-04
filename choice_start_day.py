@@ -78,15 +78,12 @@ def cpoint_roll_var_seq(seed_df, thresh = 0.05):
     # first value of the needed group
     cpoint = ids_splits[split_id][0]
 
-    if cpoint < 7:
-        return 7
-    else:
-        return cpoint
+    return cpoint
 
 
 # wait until 1% of population is infected, 
 # and only then look for a change in variance
-def cpoint_roll_var_npeople(seed_df, thresh = 0.1, n_people=1001):
+def cpoint_roll_var_npeople(seed_df, thresh = 0.1, n_people=100):
     scaler = MinMaxScaler()
 
     var_vals = seed_df.Beta.rolling(7).var()
@@ -94,8 +91,8 @@ def cpoint_roll_var_npeople(seed_df, thresh = 0.1, n_people=1001):
     
     day_with_npeople = seed_df[seed_df.I >= n_people].index[0]
     cpoint = np.nanmin(np.where(scaled_varv[day_with_npeople:] < thresh)[0])   
-    if cpoint + day_with_npeople < 7:
-        return 7
+    if cpoint + day_with_npeople < 14:
+        return 14
     else:
         return cpoint + day_with_npeople
 
