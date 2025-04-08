@@ -90,7 +90,8 @@ class LSTMPredictor:
         return predicted_beta
 
 def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted_days, 
-                 stochastic, count_stoch_line, sigma, gamma):
+                 stochastic, count_stoch_line, sigma, gamma, 
+                 features_reg):
     '''
     Predict Beta values.
 
@@ -200,17 +201,35 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         S[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['S']
         predicted_I[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['I']
         R[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['R']  
-        E[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['E']     
-        model_path = 'regression_day_SEIR_prev_I_for_seir.joblib'
+        E[0:count_stoch_line+1,0] = seed_df.iloc[predicted_days[0]]['E'] 
+        
+        total_len = len(features_reg)    
+        if total_len == 3:
+            suffix = features_reg[-1].upper()  # последний элемент
+        elif total_len == 4:
+            suffix = ''.join(features_reg[-2:]).upper()  # два последних
+        elif total_len == 5:
+            suffix = ''.join(features_reg[-3:]).upper()  # три последних
+        elif total_len == 6:
+            suffix = ''.join(features_reg[-4:]).upper()  # четыре последних
+        model_path = f'regression_day_{suffix}_prev_I_for_seir.joblib'
         y = np.array([S[:,0], E[:,0], predicted_I[:,0], R[:,0]])
         y = y.T
-
         model = load_saved_model(model_path)
         prev_I = seed_df.iloc[predicted_days[0]-1:predicted_days[0]]['I'].to_numpy() if predicted_days[0] > 1 else np.array([0.0, 0.0])
-        log_beta = model.predict([[predicted_days[0], S[0,0], E[0,0], predicted_I[0,0], R[0,0], prev_I[0]]])
-        
+        var_dict = {
+        'day': predicted_days[0],
+        'S': S[0, 0],
+        'E': E[0, 0],
+        'I': predicted_I[0, 0],
+        'R': R[0, 0] ,
+        'prev_I': prev_I[0]
+        }
+        feat = [feature for feature in features_reg]
+        X_input = [var_dict[feature] for feature in features_reg]
+        log_beta = model.predict([X_input])
         beta = np.exp(log_beta)[0]
-        predicted_beta = np.append(predicted_beta,beta)
+        predicted_beta = np.append(predicted_beta,max(beta, 0))
         for idx in range(predicted_days.shape[0]-1):
 
             # prediction of the Infected compartment trajectory
@@ -229,17 +248,23 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
            
             y = np.array([S[:,1], E[:,1], predicted_I[:,idx+1], R[:,1]])
             y = y.T
-            if (idx == 0): #or (idx == 1):
-                log_beta = model.predict([[predicted_days[idx+1], S[0,1], E[0,1], predicted_I[0,idx+1], R[0,1], prev_I[idx]]])
-            else:
-                log_beta = model.predict([[predicted_days[idx+1], S[0,1], E[0,1], predicted_I[0,idx+1], R[0,1], predicted_I[0,idx-1]]])
-            
+
+            var_dict = {
+            'day': predicted_days[idx+1],
+            'S': S[0, 1],
+            'E': E[0, 1],
+            'I': predicted_I[0, idx+1],
+            'R': R[0, 1] ,
+            'prev_I': predicted_I[0,idx]
+            }
+            X_input = [var_dict[feature] for feature in features_reg]
+            log_beta = model.predict([X_input])
             beta = np.exp(log_beta)[0]
-            predicted_beta = np.append(predicted_beta, beta)
+            predicted_beta = np.append(predicted_beta, max(beta, 0))
 
     elif beta_prediction_method == 'lstm (day, E, previous I)':
-        model_path = 'lstm_day_E_prev_I_for_seir_14.keras'
-        full_scaler = joblib.load('lstm_day_E_prev_I_for_seir_14.pkl')
+        model_path = 'lstm_day_E_prev_I_for_seir.keras'
+        full_scaler = joblib.load('lstm_day_E_prev_I_for_seir.pkl')
         model = load_model(model_path)
         predictor = LSTMPredictor(model, full_scaler, window_size=14)
         prev_I = seed_df.iloc[predicted_days[0]-2:predicted_days[0]]['I'].to_numpy() if predicted_days[0] > 1 else np.array([0.0, 0.0])
