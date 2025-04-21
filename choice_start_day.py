@@ -55,8 +55,8 @@ def cpoint_roll_var(seed_df, thresh = 0.05):
 
     cpoint = np.nanmin(np.where(scaled_varv < thresh)[0])   
 
-    if cpoint < 7:
-        return 7
+    if cpoint < 14:
+        return 14
     else:
         return cpoint
 
@@ -77,8 +77,10 @@ def cpoint_roll_var_seq(seed_df, thresh = 0.05):
     split_id = np.where(split_shapes>=2)[0][0]
     # first value of the needed group
     cpoint = ids_splits[split_id][0]
-
-    return cpoint
+    if cpoint < 14:
+        return 14
+    else:
+        return cpoint
 
 
 # wait until 1% of population is infected, 
