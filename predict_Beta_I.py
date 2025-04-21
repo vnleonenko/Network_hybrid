@@ -135,6 +135,7 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
     
     elif beta_prediction_method == 'expanding mean last value':
         betas = seed_df.iloc[:predicted_days[0]]['Beta'].mean()
+        beggining_beta = [seed_df.iloc[:i]['Beta'].mean() for i in range(predicted_days[0])]
         predicted_beta = [betas for i in range(predicted_days.shape[0])]
 
     elif beta_prediction_method == 'expanding mean':
@@ -246,8 +247,6 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
                                                   'stoch', beta_t=False) 
            
             y = np.array([S[:,1], E[:,1], predicted_I[:,idx+1], R[:,1]])
-            print(idx)
-            print(y)
             y = y.T
 
             var_dict = {
