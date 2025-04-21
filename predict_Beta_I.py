@@ -145,11 +145,11 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
     elif beta_prediction_method == 'biexponential decay':
         given_betas = seed_df.iloc[:predicted_days[0]]['Beta'].values
         given_days = np.arange(predicted_days[0])
-        coeffs, _ = curve_fit(biexponential_decay_func, given_days, given_betas)
+        coeffs, _ = curve_fit(biexponential_decay_func, given_days, given_betas, maxfev=5000)
         beggining_beta = biexponential_decay_func(given_days, *coeffs)
         predicted_beta = biexponential_decay_func(predicted_days, *coeffs)
         predicted_beta[predicted_beta < 0] = 0
-        
+
     elif beta_prediction_method == 'median beta':
         betas = pd.read_csv('train/median_beta.csv')
         beggining_beta = betas.iloc[:predicted_days[0]]['median_beta'].values
@@ -225,7 +225,6 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
         'R': R[0, 0] ,
         'prev_I': prev_I[0]
         }
-        feat = [feature for feature in features_reg]
         X_input = [var_dict[feature] for feature in features_reg]
         log_beta = model.predict([X_input])
         beta = np.exp(log_beta)[0]
@@ -247,6 +246,8 @@ def predict_beta(I_prediction_method, seed_df, beta_prediction_method, predicted
                                                   'stoch', beta_t=False) 
            
             y = np.array([S[:,1], E[:,1], predicted_I[:,idx+1], R[:,1]])
+            print(idx)
+            print(y)
             y = y.T
 
             var_dict = {
