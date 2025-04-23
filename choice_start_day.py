@@ -5,8 +5,6 @@ import numpy as np
 def choose_method(seed_df, start_day):
     if start_day == 'roll_var':
         start_day_v = cpoint_roll_var(seed_df)
-    elif start_day == 'norm_var':
-        start_day_v = cpoint_norm_var(seed_df)
     elif start_day == 'roll_var_seq':
         start_day_v = cpoint_roll_var_seq(seed_df)
     elif start_day == 'roll_var_npeople':
@@ -14,36 +12,7 @@ def choose_method(seed_df, start_day):
     else:
         start_day_v = start_day
     
-    return start_day_v
-
-
-def cpoint_norm_var(seed_df):
-    
-    # http://www.claudiobellei.com/2016/11/15/changepoint-frequentist/ 
-    # type=="normal-var"
-
-    data = seed_df.Beta.values
-    n = len(data)
-    tau = np.arange(1,n)
-    criterion = 1*np.log(n) #Bayesian Information Criterion
-    #criterion = 2
-  
-    eps = 1.e-8 #to avoid zeros in denominator
-
-    std0 = np.std(data)
-    std1 = np.asarray([np.std(data[0:i]) for i in range(1,n)],dtype=float) + eps
-    std2 = np.asarray([np.std(data[i:]) for i in range(1,n)],dtype=float) + eps
-    R = n*np.log(std0) - tau*np.log(std1) - (n-tau)*np.log(std2)
-    G  = np.max(R)
-    cpoint = int(np.where(R==G)[0]) + 1
-
-    teststat = 2*G
-
-    if teststat > criterion:
-        return cpoint
-    else:
-        return 30
-        
+    return start_day_v     
 
 
 # look for a change in variance (< 5%)
